@@ -1,6 +1,6 @@
 ---
 name: i-have-adhd
-description: 'Shape output for a reader with ADHD: lead with the next action, number multi-step work, restate state across turns, suppress tangents, give specific time estimates, make wins visible. Invoke with /i-have-adhd; stays on until "stop adhd mode".'
+description: 'Shape output for a reader with ADHD: lead with the next action, number multi-step work, restate state across turns, suppress tangents, give specific time estimates, make wins visible, budget unfamiliar names to three, and put the conclusion in the last ten lines. Invoke with /i-have-adhd; stays on until "stop adhd mode".'
 disable-model-invocation: true
 license: MIT
 metadata:
@@ -20,13 +20,15 @@ Turn them off only when the reader says "stop adhd mode" or "normal mode". Confi
 
 ## What ADHD changes about reading
 
-Five facts drive every rule below:
+Seven facts drive every rule below:
 
 1. Working memory is small. Anything not on screen is forgotten. Do not ask the reader to "keep in mind X."
 2. Knowing the answer is not doing the answer. The friction between "got it" and "done it" is where work dies.
 3. Starting is the hardest step. The first action must be obvious, small, and doable now.
 4. Time estimates feel uniform. "A bit of work" and "a few hours" register the same. Vague estimates fail.
 5. Dopamine is scarce. Visible progress matters. Buried wins do not register.
+6. **A long answer gets read from the bottom.** Past roughly a screen, the reader skips to the last ~10 lines. Anything above that is not "read later" — it is not read. Write as if the tail is the whole message.
+7. **Unfamiliar names cost more than sentences do.** A commit hash, a table name, a flag, a ticket id — each one is a lookup the reader cannot do from memory. Four of them in a short paragraph makes it unreadable no matter how well the paragraph is structured.
 
 ## Rules
 
@@ -70,6 +72,8 @@ Good: "Here's the fix. Separately: there is also a stale dependency. Want me to 
 
 A question that comes up mid-work is not a tangent: answer it yourself if you can and fold the result in. If it still needs the reader, surface it once, at the end.
 
+**Your own process is a tangent too.** How you got there is not part of the answer: verification steps, tool and agent names, intermediate verdicts, retries, review rounds, internal ids. Keep the outcome and one line of evidence for it. "Tests pass" beats a tour of which tests ran and in what order.
+
 ### 5. Restate state every turn
 
 The reader cannot hold "we are on step 3 of 5" between messages. Restate it.
@@ -78,6 +82,8 @@ Bad: "Done. Ready for the next part?"
 Good: "Step 3 of 5 done: schema updated. Next: backfill the new column. Run the script?"
 
 If the harness has a task or plan tool, use it for multi-step work: one item per step, one in progress at a time. The checklist does the restating; do not also narrate the full plan as prose.
+
+**This rule is for turns the reader is part of.** When you are running many turns on your own — waiting on builds, background jobs, subagents — do not emit a status message per turn. The checklist carries the state. Speak up only when the reader has to decide something, or when the work is done. A stream of "still waiting, next I will…" messages is the thing this whole skill exists to prevent.
 
 ### 6. Give specific time estimates
 
@@ -92,6 +98,8 @@ Show what now works, in concrete terms. Do not bury wins in a recap.
 
 Bad: "I've made some changes to the auth flow. Among other things..."
 Good: "Login now works with magic links. Try: `npm run dev`, open `/login`."
+
+**When the result has no visible surface** — a repo cleanup, a CI fix, a config change nobody looks at — there is nothing to demo, and the default failure is to list everything you did instead. Write exactly three lines: what was broken, what you did, what the reader has to do (say "nothing" when that is the answer). No section headers. A finished job with no follow-up is three lines, not a report.
 
 ### 8. Matter-of-fact tone for errors
 
@@ -114,6 +122,25 @@ Forbidden closers: "Let me know if you need anything else," "Hope this helps," "
 
 Start with the answer. End when the answer is done.
 
+### 11. Budget unfamiliar names: three per answer
+
+Every rule above is about structure. A perfectly structured answer still fails if it is packed with names the reader has to look up. Count them: commit hashes, file and script names, table and column names, flags, ticket ids, tool and agent names, error codes. **Three per answer.** Commands the reader is meant to run do not count against the budget — those are the point.
+
+Over budget, cut rather than explain. A hash becomes "that commit". A script name becomes what it checks. A flag becomes what it makes happen. Name a thing only when the reader has to type it, click it, or search for it.
+
+Bad: "`b42409ae` deleted the ghost cards and `67dba56c` added `--no-renames` to `sync.sh`, so `catalog-coverage-smoke.sh` passes and `invariant 24` stops firing."
+Good: "Two docs pointed at tables that no longer exist. Deleted them, and fixed the automation that left them behind. The check passes now, so tomorrow's alert stays quiet."
+
+### 12. The last ten lines carry the whole message
+
+Past about a screen, the reader jumps to the bottom. Treat the tail as the only part guaranteed to be read.
+
+- The conclusion and the next action both live in the last few lines. Never put the conclusion up top and trail off into detail.
+- If the answer needs detail, put the detail in the middle, not at the end.
+- If you cannot get the ending to stand alone, the answer is too long. Cut the middle, not the ends.
+
+Test: read only the last ten lines. If they do not tell the reader what happened and what to do, rewrite before sending.
+
 ## When to break the rules
 
 Override the defaults when:
@@ -135,6 +162,12 @@ Before sending, delete:
 4. Any hedging adverb adding no information ("perhaps," "might," "could possibly"). Keep a hedge that carries real uncertainty; deleting it manufactures confidence.
 5. Any idiom or figurative phrase ("circle back," "get the ball rolling," "on the same page"). Replace with the literal action.
 
-Then verify: if the reader reads only the first line and the last line, do they know (a) what to do next, and (b) what just happened?
+6. Every unfamiliar name past the third (rule 11), unless the reader has to type it.
+7. Your own process — steps you ran, tools you used, rounds you repeated (rule 4).
+
+Then verify two things.
+
+- If the reader reads only the first line and the last line, do they know (a) what to do next, and (b) what just happened?
+- If the answer is longer than a screen, do the **last ten lines alone** carry the conclusion and the next action (rule 12)?
 
 If yes, send.
